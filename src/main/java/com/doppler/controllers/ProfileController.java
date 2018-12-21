@@ -27,7 +27,7 @@ public class ProfileController {
    */
   @GetMapping("/myBadges")
   public List<Badge> getAllCurrentUserBadges() {
-    return service.getAllCurrentUserBadges();
+    return service.getBadgesForCurrentUser();
   }
 
   /**
@@ -37,6 +37,6 @@ public class ProfileController {
    */
   @GetMapping("/myRewardPoints")
   public List<UserRewardPoint> getAllCurrentUserRewardPoints() {
-    return service.getAllCurrentUserRewardPoints();
+    return service.getRewardsForCurrentUser();
   }
 }

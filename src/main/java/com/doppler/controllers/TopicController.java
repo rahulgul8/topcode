@@ -28,6 +28,6 @@ public class TopicController {
    */
   @GetMapping
   public List<Topic> search() {
-    return service.search();
+    return service.retrieveTopics();
   }
 }

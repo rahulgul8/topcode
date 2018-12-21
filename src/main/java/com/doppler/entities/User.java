@@ -73,6 +73,10 @@ public class User extends IdentifiableEntity {
    */
   @JsonIgnore
   private boolean notifiedByNewEvents = true;
+  
+  
+  @JsonIgnore
+  private String backendToken;
 
   /**
    * The points.

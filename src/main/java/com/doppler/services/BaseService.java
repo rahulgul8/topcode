@@ -1,6 +1,7 @@
 package com.doppler.services;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -9,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import com.doppler.entities.Event;
@@ -167,4 +171,12 @@ public abstract class BaseService {
 
     return event;
   }
+  
+	protected HttpEntity<String> constructHttpEntityWithRequestHeaders(String token) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+		headers.add("Authorization", token);
+		HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+		return entity;
+	}
 }

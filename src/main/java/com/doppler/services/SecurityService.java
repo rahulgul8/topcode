@@ -23,6 +23,10 @@ public class SecurityService {
    */
   @Autowired
   private UserRepository userRepository;
+  
+  
+  @Autowired
+  LoginRestService loginService;
 
   /**
    * The token utils.
@@ -48,7 +52,7 @@ public class SecurityService {
       user.setIsNew(dbUser.getIsNew());
       user.setNotifiedByNewEvents(dbUser.isNotifiedByNewEvents());
     }
-
+    doBackendLogin(user);
     // Save
     user = userRepository.save(user);
 
@@ -94,5 +98,11 @@ public class SecurityService {
     user.setIsNew(true);
 
     return user;
+  }
+  
+  
+  private User doBackendLogin(User user) {
+	  user.setBackendToken(loginService.userLogin());
+	  return user;
   }
 }

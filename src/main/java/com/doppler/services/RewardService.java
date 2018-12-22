@@ -1,16 +1,17 @@
 package com.doppler.services;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.doppler.entities.Reward;
 import com.doppler.entities.User;
 import com.doppler.entities.UserReward;
@@ -20,6 +21,7 @@ import com.doppler.repositories.RewardRepository;
 import com.doppler.repositories.UserRepository;
 import com.doppler.repositories.UserRewardRepository;
 import com.doppler.security.SecurityUtils;
+import com.doppler.util.ApiConstants;
 
 /**
  * The service provides reward related operations.
@@ -32,6 +34,8 @@ public class RewardService extends BaseService {
    * The milliseconds in an hour.
    */
   private static final long MILLISECONDS_IN_HOUR = 60 * 60 * 1000;
+  
+  private static final String REWARD_URL = "/rewards";
 
   /**
    * The reward repository.
@@ -50,6 +54,9 @@ public class RewardService extends BaseService {
    */
   @Autowired
   private UserRewardRepository userRewardRepository;
+  
+  @Autowired
+  private BackendAPIService restApiService;
 
   /**
    * Search rewards.
@@ -59,15 +66,12 @@ public class RewardService extends BaseService {
    */
   @Transactional(readOnly = true)
   public SearchResponse<Reward> search(PagingAndSortingSearchRequest criteria) {
-    Pageable pageable =
-        createPageRequest(criteria, Arrays.asList("title", "pointsRequired"), "title", "asc");
-
     SearchResponse<Reward> searchResponse = new SearchResponse<>();
-    Page<Reward> page = rewardRepository.findAll(pageable);
+	UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ApiConstants.BASE_URI + REWARD_URL)
+			.queryParam("limit", criteria.getLimit()).queryParam("offset", criteria.getOffset())
+			.queryParam("sortBy", criteria.getSortBy()).queryParam("sortDirection", criteria.getSortDirection());
 
-    searchResponse.setCount(page.getTotalElements());
-    searchResponse.setRows(page.getContent());
-
+	restApiService.getForEntity(searchResponse.getClass(), builder.toUriString());
     return searchResponse;
   }
 
@@ -78,32 +82,7 @@ public class RewardService extends BaseService {
    * @return the created user reward
    */
   public UserReward redeem(UUID rewardId) {
-
-    // Get the reward
-    Optional<Reward> optionalReward = rewardRepository.findById(rewardId);
-    if (!optionalReward.isPresent()) {
-      throw new EntityNotFoundException("Reward does not exist with id = " + rewardId);
-    }
-
-    Reward reward = optionalReward.get();
-
-    // Check and deduct user points
-    User user = SecurityUtils.getCurrentUser();
-    if (reward.getPointsRequired() > user.getPoints()) {
-      throw new IllegalArgumentException("You don't have enough points to redeem the reward");
-    }
-
-    user.setPoints(user.getPoints() - reward.getPointsRequired());
-    userRepository.save(user);
-
-    // Create user reward
-    UserReward userReward = new UserReward();
-    userReward.setExpiredAt(new Date(
-        System.currentTimeMillis() + reward.getExpirationInHours() * MILLISECONDS_IN_HOUR));
-    userReward.setReward(reward);
-    userReward.setUserId(user.getId());
-
-    return userRewardRepository.save(userReward);
+	  return null;
   }
 
   /**

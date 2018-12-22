@@ -35,7 +35,6 @@ public class UserReward extends IdentifiableEntity {
   /**
    * The expiration date.
    */
-  @NotNull
   @Temporal(TemporalType.TIMESTAMP)
   private Date expiredAt;
 
@@ -45,4 +44,6 @@ public class UserReward extends IdentifiableEntity {
   @NotNull
   @JsonIgnore
   private UUID userId;
+  
+  private String redemptionCode;
 }

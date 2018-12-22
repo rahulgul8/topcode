@@ -1,7 +1,11 @@
 package com.doppler.services;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,9 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.doppler.entities.Reward;
+import com.doppler.entities.RewardRedeem;
+import com.doppler.entities.User;
 import com.doppler.entities.UserReward;
 import com.doppler.entities.requests.PagingAndSortingSearchRequest;
 import com.doppler.entities.responses.SearchResponse;
+import com.doppler.repositories.UserRepository;
 import com.doppler.repositories.UserRewardRepository;
 import com.doppler.security.SecurityUtils;
 import com.doppler.util.ApiConstants;
@@ -38,6 +45,9 @@ public class RewardService extends BaseService {
 
 	@Autowired
 	private BackendAPIService restApiService;
+	
+	  @Autowired
+	  private UserRepository userRepository;
 
 	/**
 	 * Search rewards.
@@ -66,7 +76,27 @@ public class RewardService extends BaseService {
 	 * @return the created user reward
 	 */
 	public UserReward redeem(UUID rewardId) {
-		return null;
+		Reward reward = getRewardByID(rewardId);
+		if (Objects.isNull(reward)) {
+			throw new EntityNotFoundException("Entity  not available");
+		}
+		User user = SecurityUtils.getCurrentUser();
+		if (reward.getPointsRequired() > user.getPoints()) {
+			throw new IllegalArgumentException("You don't have enough points to redeem the reward");
+		}
+
+		user.setPoints(user.getPoints() - reward.getPointsRequired());
+		userRepository.save(user);
+
+		// Create user reward
+		UserReward userReward = new UserReward();
+
+		RewardRedeem output = restApiService.putForEntity(RewardRedeem.class,
+				ApiConstants.BASE_URI + REWARD_URL + "/" + rewardId + "/redeem", null);
+		if (Objects.nonNull(output)) {
+			userReward.setRedemptionCode(output.getRedemptionCode());
+		}
+		return userReward;
 	}
 
 	/**
@@ -76,6 +106,6 @@ public class RewardService extends BaseService {
 	 */
 	@Transactional(readOnly = true)
 	public List<UserReward> getAllCurrentUserRewards() {
-		return userRewardRepository.findAllByUserId(SecurityUtils.getCurrentUser().getId());
+		return restApiService.getForList(UserReward.class, ApiConstants.BASE_URI+REWARD_URL);
 	}
 }

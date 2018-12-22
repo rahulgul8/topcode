@@ -38,6 +38,19 @@ public class RewardController {
       @Valid @ModelAttribute PagingAndSortingSearchRequest criteria) {
     return service.search(criteria);
   }
+  
+  /**
+   * Search events.
+   *
+   * @param criteria the search criteria
+   * @return the search result
+   */
+  @GetMapping("/rewards/{rewardId}")
+  public Reward getRewardByID(@PathVariable("rewardId") UUID rewardId) {
+    return service.getRewardByID(rewardId);
+  }
+  
+  
 
   /**
    * Redeem a reward.

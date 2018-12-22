@@ -1,11 +1,7 @@
 package com.doppler.services;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
-import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,12 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.doppler.entities.Reward;
-import com.doppler.entities.User;
 import com.doppler.entities.UserReward;
 import com.doppler.entities.requests.PagingAndSortingSearchRequest;
 import com.doppler.entities.responses.SearchResponse;
-import com.doppler.repositories.RewardRepository;
-import com.doppler.repositories.UserRepository;
 import com.doppler.repositories.UserRewardRepository;
 import com.doppler.security.SecurityUtils;
 import com.doppler.util.ApiConstants;
@@ -61,6 +54,11 @@ public class RewardService extends BaseService {
 		return restApiService.getForEntity(SearchResponse.class, Reward.class, builder.toUriString());
 	}
 
+	public Reward getRewardByID(UUID id) {
+		Reward reward = restApiService.getForEntity(Reward.class, ApiConstants.BASE_URI + REWARD_URL + "/{id}", id);
+		return reward;
+	}
+	
 	/**
 	 * Redeem a reward.
 	 * 

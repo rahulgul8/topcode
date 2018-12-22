@@ -19,9 +19,10 @@ public class TopicService extends BaseService {
 	private static final String TOPIC_URL = "/topics";
 
 	@Autowired
-	BackendAPIService backendApiService;
+	BackendAPIService apiService;
 
 	public List<Topic> retrieveTopics() {
-		return backendApiService.getForList(Topic.class, ApiConstants.BASE_URI + TOPIC_URL);
+		List<Topic> topics = apiService.getForList(Topic.class, ApiConstants.BASE_URI + TOPIC_URL);
+		return topics;
 	}
 }

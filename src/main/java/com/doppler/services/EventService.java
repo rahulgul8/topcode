@@ -1,22 +1,18 @@
 package com.doppler.services;
 
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.doppler.entities.Event;
 import com.doppler.entities.Notification;
 import com.doppler.entities.User;
-import com.doppler.entities.UserEvent;
 import com.doppler.entities.requests.EventSearchRequest;
-import com.doppler.entities.requests.EventStatus;
 import com.doppler.entities.requests.UserIdRequest;
 import com.doppler.entities.responses.SearchResponse;
 import com.doppler.repositories.EventRepository;
@@ -25,6 +21,7 @@ import com.doppler.repositories.UserEventRepository;
 import com.doppler.repositories.UserRepository;
 import com.doppler.security.SecurityUtils;
 import com.doppler.services.config.NotificationContentConfiguration;
+import com.doppler.util.ApiConstants;
 
 /**
  * The service provides event related operations.
@@ -32,6 +29,9 @@ import com.doppler.services.config.NotificationContentConfiguration;
 @Service
 @Transactional
 public class EventService extends BaseService {
+	
+	 
+	  private static final String EVENTS_URL = "/events";
 
   /**
    * The event repository.
@@ -62,73 +62,42 @@ public class EventService extends BaseService {
   @Autowired
   private NotificationContentConfiguration notificationContentConfiguration;
 
-  /**
-   * Search events.
-   * 
-   * @param criteria the search criteria
-   * @return the search result
-   */
-  @Transactional(readOnly = true)
-  public SearchResponse<Event> search(EventSearchRequest criteria) {
-    Pageable pageable =
-        createPageRequest(criteria, Arrays.asList("firstSessionStart"), "firstSessionStart", "asc");
+  @Autowired
+  private BackendAPIService apiService;
+  
+ 
+  
+  
+	/**
+	 * Search events.
+	 * 
+	 * @param criteria
+	 *            the search criteria
+	 * @return the search result
+	 */
+	@Transactional(readOnly = true)
+	public SearchResponse<Event> search(EventSearchRequest criteria) {
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ApiConstants.BASE_URI + EVENTS_URL)
+				.queryParam("limit", criteria.getLimit()).queryParam("offset", criteria.getOffset())
+				.queryParam("sortBy", criteria.getSortBy()).queryParam("sortDirection", criteria.getSortDirection())
+				.queryParam("eventStatus", criteria.getStatus()).queryParam("topicId", criteria.getTopicId());
 
-    // Upcoming or past events
-    Date lastSessionEndFrom = null;
-    Date lastSessionEndTo = null;
+		SearchResponse<Event> events = apiService.getForEntity(SearchResponse.class, builder.toUriString());
+		return events;
+	}
 
-    if (criteria.getStatus() == EventStatus.UPCOMING) {
-      lastSessionEndFrom = new Date();
-    } else if (criteria.getStatus() == EventStatus.PAST) {
-      lastSessionEndTo = new Date();
-    }
-
-    // Get all user events
-    UUID userId = SecurityUtils.getCurrentUser().getId();
-    List<UserEvent> userEvents = userEventRepository.findByUserId(userId);
-    List<UUID> myEventIds =
-        userEvents.stream().map(UserEvent::getEventId).collect(Collectors.toList());
-
-    SearchResponse<Event> searchResponse = new SearchResponse<>();
-    Page<Event> page = null;
-
-    // Filter only my events
-    if (criteria.isOnlyMyEvents()) {
-
-      // No registered events
-      if (CollectionUtils.isEmpty(myEventIds)) {
-        return searchResponse;
-      }
-
-      page = eventRepository.search(uuidToString(criteria.getTopicId()), lastSessionEndFrom,
-          lastSessionEndTo, myEventIds, pageable);
-    } else {
-      // Or filter all events
-      page = eventRepository.search(uuidToString(criteria.getTopicId()), lastSessionEndFrom,
-          lastSessionEndTo, pageable);
-    }
-
-    // Set isMyEvent flag
-    page.getContent().forEach(x -> {
-      x.setIsMyEvent(myEventIds.contains(x.getId()));
-    });
-
-    searchResponse.setCount(page.getTotalElements());
-    searchResponse.setRows(page.getContent());
-
-    return searchResponse;
-  }
-
-  /**
-   * Get an event by id.
-   * 
-   * @param id the id
-   * @return the event
-   */
-  @Transactional(readOnly = true)
-  public Event get(UUID id) {
-    return getEventById(id);
-  }
+	/**
+	 * Get an event by id.
+	 * 
+	 * @param id
+	 *            the id
+	 * @return the event
+	 */
+	@Transactional(readOnly = true)
+	public Event get(UUID id) {
+		Event event = apiService.getForEntity(Event.class, ApiConstants.BASE_URI + EVENTS_URL + "/{id}", id);
+		return event;
+	}
 
   /**
    * Share event to other users.

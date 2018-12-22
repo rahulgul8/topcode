@@ -15,7 +15,6 @@ import com.doppler.entities.UserSetting;
 import com.doppler.entities.requests.UserSearchRequest;
 import com.doppler.entities.responses.SearchResponse;
 import com.doppler.repositories.UserRepository;
-import com.doppler.repositories.UserRewardPointRepository;
 import com.doppler.security.SecurityUtils;
 import com.doppler.util.ApiConstants;
 
@@ -31,12 +30,6 @@ public class UserService extends BaseService {
 	 */
 	@Autowired
 	private UserRepository userRepository;
-
-	/**
-	 * The user reward point repository.
-	 */
-	@Autowired
-	private UserRewardPointRepository userRewardPointRepository;
 
 	@Autowired
 	private BackendAPIService backendAPIService;
@@ -82,9 +75,10 @@ public class UserService extends BaseService {
 	 */
 	@Transactional(readOnly = true)
 	public SearchResponse<User> search(UserSearchRequest criteria) {
-		criteria.setSortBy("fullName");
+		String fullName = "fullName";
+		criteria.setSortBy(fullName);
 		criteria.setKeyword(criteria.getKeyword() == null ? "" : criteria.getKeyword());
-		Pageable pageable = createPageRequest(criteria, Arrays.asList("fullName"), "fullName", "asc");
+		Pageable pageable = createPageRequest(criteria, Arrays.asList(fullName), fullName, "asc");
 
 		SearchResponse<User> searchResponse = new SearchResponse<>();
 		Page<User> page = userRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(

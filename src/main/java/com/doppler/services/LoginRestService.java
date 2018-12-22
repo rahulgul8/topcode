@@ -5,7 +5,6 @@ import static com.doppler.util.ApiConstants.BASE_URI;
 import static com.doppler.util.ApiConstants.USER_KEY;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.doppler.entities.requests.LoginRestServiceRequest;
@@ -17,7 +16,6 @@ public class LoginRestService {
 	public static final String LOGIN_SERVICE = "/users/login";
 
 	@Autowired
-	@Qualifier(value = "common")
 	private RestTemplateService helper;
 
 	private LoginRestServiceRequest loginDetails = new LoginRestServiceRequest();

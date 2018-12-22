@@ -22,7 +22,6 @@ public class TopicService extends BaseService {
 	BackendAPIService apiService;
 
 	public List<Topic> retrieveTopics() {
-		List<Topic> topics = apiService.getForList(Topic.class, ApiConstants.BASE_URI + TOPIC_URL);
-		return topics;
+		return apiService.getForList(Topic.class, ApiConstants.BASE_URI + TOPIC_URL);
 	}
 }

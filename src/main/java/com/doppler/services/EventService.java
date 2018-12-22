@@ -29,50 +29,45 @@ import com.doppler.util.ApiConstants;
 @Service
 @Transactional
 public class EventService extends BaseService {
-	
-	 
-	  private static final String EVENTS_URL = "/events";
 
-  /**
-   * The event repository.
-   */
-  @Autowired
-  private EventRepository eventRepository;
+	private static final String EVENTS_URL = "/events";
 
-  /**
-   * The user event repository.
-   */
-  @Autowired
-  private UserEventRepository userEventRepository;
+	/**
+	 * The event repository.
+	 */
+	@Autowired
+	private EventRepository eventRepository;
 
-  /**
-   * The user repository.
-   */
-  @Autowired
-  private UserRepository userRepository;
-  /**
-   * The notification repository.
-   */
-  @Autowired
-  private NotificationRepository notificationRepository;
+	/**
+	 * The user event repository.
+	 */
+	@Autowired
+	private UserEventRepository userEventRepository;
 
-  /**
-   * The notification content configuration.
-   */
-  @Autowired
-  private NotificationContentConfiguration notificationContentConfiguration;
+	/**
+	 * The user repository.
+	 */
+	@Autowired
+	private UserRepository userRepository;
+	/**
+	 * The notification repository.
+	 */
+	@Autowired
+	private NotificationRepository notificationRepository;
 
-  @Autowired
-  private BackendAPIService apiService;
-  
- 
-  
-  
+	/**
+	 * The notification content configuration.
+	 */
+	@Autowired
+	private NotificationContentConfiguration notificationContentConfiguration;
+
+	@Autowired
+	private BackendAPIService apiService;
+
 	/**
 	 * Search events.
 	 * 
-	 * @param criteria
-	 *            the search criteria
+	 * @param criteria the search criteria
 	 * @return the search result
 	 */
 	@Transactional(readOnly = true)
@@ -82,15 +77,13 @@ public class EventService extends BaseService {
 				.queryParam("sortBy", criteria.getSortBy()).queryParam("sortDirection", criteria.getSortDirection())
 				.queryParam("eventStatus", criteria.getStatus()).queryParam("topicId", criteria.getTopicId());
 
-		SearchResponse<Event> events = apiService.getForEntity(SearchResponse.class, builder.toUriString());
-		return events;
+		return apiService.getForEntity(SearchResponse.class, Event.class, builder.toUriString());
 	}
 
 	/**
 	 * Get an event by id.
 	 * 
-	 * @param id
-	 *            the id
+	 * @param id the id
 	 * @return the event
 	 */
 	@Transactional(readOnly = true)
@@ -99,40 +92,39 @@ public class EventService extends BaseService {
 		return event;
 	}
 
-  /**
-   * Share event to other users.
-   * 
-   * @param eventId the event id
-   * @param request the request
-   */
-  public void share(UUID eventId, List<UserIdRequest> request) {
-    // Validate
-    validateList(request, "request");
-    List<UUID> userIds =
-        request.stream().map(UserIdRequest::getUserId).collect(Collectors.toList());
-    validateList(userIds, "request[].userId");
+	/**
+	 * Share event to other users.
+	 * 
+	 * @param eventId the event id
+	 * @param request the request
+	 */
+	public void share(UUID eventId, List<UserIdRequest> request) {
+		// Validate
+		validateList(request, "request");
+		List<UUID> userIds = request.stream().map(UserIdRequest::getUserId).collect(Collectors.toList());
+		validateList(userIds, "request[].userId");
 
-    // Get the event
-    Event event = get(eventId);
+		// Get the event
+		Event event = get(eventId);
 
-    // Get the users
-    List<User> users = userRepository.findByIdIn(userIds);
+		// Get the users
+		List<User> users = userRepository.findByIdIn(userIds);
 
-    User currentUser = SecurityUtils.getCurrentUser();
+		User currentUser = SecurityUtils.getCurrentUser();
 
-    // Build the notifications
-    List<Notification> notifications = users.stream().map(user -> {
-      Notification notification = new Notification();
-      notification.setContent(String.format(notificationContentConfiguration.getShareEvent(),
-          currentUser.getFullName(), event.getTitle()));
-      notification.setIconUrl(currentUser.getPhotoUrl());
-      notification.setRelatedObjectType(Event.class.getSimpleName());
-      notification.setRelatedObjectId(event.getId());
-      notification.setUserId(user.getId());
+		// Build the notifications
+		List<Notification> notifications = users.stream().map(user -> {
+			Notification notification = new Notification();
+			notification.setContent(String.format(notificationContentConfiguration.getShareEvent(),
+					currentUser.getFullName(), event.getTitle()));
+			notification.setIconUrl(currentUser.getPhotoUrl());
+			notification.setRelatedObjectType(Event.class.getSimpleName());
+			notification.setRelatedObjectId(event.getId());
+			notification.setUserId(user.getId());
 
-      return notification;
-    }).collect(Collectors.toList());
+			return notification;
+		}).collect(Collectors.toList());
 
-    notificationRepository.saveAll(notifications);
-  }
+		notificationRepository.saveAll(notifications);
+	}
 }

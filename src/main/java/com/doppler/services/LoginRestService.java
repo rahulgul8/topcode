@@ -67,6 +67,10 @@ public class LoginRestService {
 		userRepository.save(user);
 
 		// Update the user token on the Security context
+		updateUserToSecurityContext(user, request);
+	}
+
+	public static void updateUserToSecurityContext(User user, HttpServletRequest request) {
 		UsernamePasswordAuthenticationToken authentication = BearerTokenFilter
 				.getUsernamePasswordAuthenticationToken(user);
 		authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

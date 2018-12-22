@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,6 +23,7 @@ public abstract class AbstractRestTemplateHandler {
 	public AbstractRestTemplateHandler(RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
 		this.restTemplate = restTemplateBuilder.build();
 		this.objectMapper = objectMapper;
+		this.objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 	}
 
 	protected <T> T readValue(ResponseEntity<String> response, JavaType javaType) {

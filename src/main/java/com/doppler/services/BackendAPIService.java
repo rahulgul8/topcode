@@ -83,6 +83,19 @@ public class BackendAPIService extends AbstractRestTemplateHandler {
 	}
 
 	@Retryable(value = { RetryableException.class }, maxAttempts = 1, backoff = @Backoff(delay = 1))
+	public <T, R> T getForEntity(Class<T> clazz, Class<R> contentClass, String url, Object... uriVariables) {
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET,
+					constructHttpEntityWithRequestHeaders(getToken()), String.class, uriVariables);
+			JavaType javaType = objectMapper.getTypeFactory().constructParametricType(clazz, contentClass);
+			return readValue(response, javaType);
+		} catch (HttpClientErrorException exception) {
+			exceptionHandler(exception, url);
+		}
+		return null;
+	}
+
+	@Retryable(value = { RetryableException.class }, maxAttempts = 1, backoff = @Backoff(delay = 1))
 	public <T> T getForEntity(Class<T> clazz, String url, Object... uriVariables) {
 		try {
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET,

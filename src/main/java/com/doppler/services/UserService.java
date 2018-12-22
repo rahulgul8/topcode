@@ -97,16 +97,6 @@ public class UserService extends BaseService {
 	}
 
 	/**
-	 * Get the reward points of current logged-in user.
-	 * 
-	 * @return the reward points
-	 */
-	@Transactional(readOnly = true)
-	public List<UserRewardPoint> getAllCurrentUserRewardPoints() {
-		return userRewardPointRepository.findByUserId(SecurityUtils.getCurrentUser().getId());
-	}
-
-	/**
 	 * Get the badges of current logged-in user.
 	 * 
 	 * @return the badges

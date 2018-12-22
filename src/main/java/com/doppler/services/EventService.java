@@ -15,9 +15,7 @@ import com.doppler.entities.User;
 import com.doppler.entities.requests.EventSearchRequest;
 import com.doppler.entities.requests.UserIdRequest;
 import com.doppler.entities.responses.SearchResponse;
-import com.doppler.repositories.EventRepository;
 import com.doppler.repositories.NotificationRepository;
-import com.doppler.repositories.UserEventRepository;
 import com.doppler.repositories.UserRepository;
 import com.doppler.security.SecurityUtils;
 import com.doppler.services.config.NotificationContentConfiguration;
@@ -31,18 +29,6 @@ import com.doppler.util.ApiConstants;
 public class EventService extends BaseService {
 
 	private static final String EVENTS_URL = "/events";
-
-	/**
-	 * The event repository.
-	 */
-	@Autowired
-	private EventRepository eventRepository;
-
-	/**
-	 * The user event repository.
-	 */
-	@Autowired
-	private UserEventRepository userEventRepository;
 
 	/**
 	 * The user repository.
@@ -70,6 +56,7 @@ public class EventService extends BaseService {
 	 * @param criteria the search criteria
 	 * @return the search result
 	 */
+	@SuppressWarnings("unchecked")
 	@Transactional(readOnly = true)
 	public SearchResponse<Event> search(EventSearchRequest criteria) {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ApiConstants.BASE_URI + EVENTS_URL)
@@ -88,8 +75,7 @@ public class EventService extends BaseService {
 	 */
 	@Transactional(readOnly = true)
 	public Event get(UUID id) {
-		Event event = apiService.getForEntity(Event.class, ApiConstants.BASE_URI + EVENTS_URL + "/{id}", id);
-		return event;
+		return apiService.getForEntity(Event.class, ApiConstants.BASE_URI + EVENTS_URL + "/{id}", id);
 	}
 
 	/**

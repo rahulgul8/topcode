@@ -30,68 +30,54 @@ import com.doppler.util.ApiConstants;
 @Transactional
 public class RewardService extends BaseService {
 
-  /**
-   * The milliseconds in an hour.
-   */
-  private static final long MILLISECONDS_IN_HOUR = 60 * 60 * 1000;
-  
-  private static final String REWARD_URL = "/rewards";
+	/**
+	 * The milliseconds in an hour.
+	 */
+	private static final long MILLISECONDS_IN_HOUR = 60 * 60 * 1000;
 
-  /**
-   * The reward repository.
-   */
-  @Autowired
-  private RewardRepository rewardRepository;
+	private static final String REWARD_URL = "/rewards";
 
-  /**
-   * The user repository.
-   */
-  @Autowired
-  private UserRepository userRepository;
+	/**
+	 * The user reward repository.
+	 */
+	@Autowired
+	private UserRewardRepository userRewardRepository;
 
-  /**
-   * The user reward repository.
-   */
-  @Autowired
-  private UserRewardRepository userRewardRepository;
-  
-  @Autowired
-  private BackendAPIService restApiService;
+	@Autowired
+	private BackendAPIService restApiService;
 
-  /**
-   * Search rewards.
-   * 
-   * @param criteria the search criteria
-   * @return the search result
-   */
-  @Transactional(readOnly = true)
-  public SearchResponse<Reward> search(PagingAndSortingSearchRequest criteria) {
-    SearchResponse<Reward> searchResponse = new SearchResponse<>();
-	UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ApiConstants.BASE_URI + REWARD_URL)
-			.queryParam("limit", criteria.getLimit()).queryParam("offset", criteria.getOffset())
-			.queryParam("sortBy", criteria.getSortBy()).queryParam("sortDirection", criteria.getSortDirection());
+	/**
+	 * Search rewards.
+	 * 
+	 * @param criteria the search criteria
+	 * @return the search result
+	 */
+	@SuppressWarnings("unchecked")
+	@Transactional(readOnly = true)
+	public SearchResponse<Reward> search(PagingAndSortingSearchRequest criteria) {
+		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(ApiConstants.BASE_URI + REWARD_URL)
+				.queryParam("limit", criteria.getLimit()).queryParam("offset", criteria.getOffset())
+				.queryParam("sortBy", criteria.getSortBy()).queryParam("sortDirection", criteria.getSortDirection());
+		return restApiService.getForEntity(SearchResponse.class, Reward.class, builder.toUriString());
+	}
 
-	restApiService.getForEntity(searchResponse.getClass(), builder.toUriString());
-    return searchResponse;
-  }
+	/**
+	 * Redeem a reward.
+	 * 
+	 * @param rewardId the reward id
+	 * @return the created user reward
+	 */
+	public UserReward redeem(UUID rewardId) {
+		return null;
+	}
 
-  /**
-   * Redeem a reward.
-   * 
-   * @param rewardId the reward id
-   * @return the created user reward
-   */
-  public UserReward redeem(UUID rewardId) {
-	  return null;
-  }
-
-  /**
-   * Get all rewards of the current user.
-   *
-   * @return the user rewards
-   */
-  @Transactional(readOnly = true)
-  public List<UserReward> getAllCurrentUserRewards() {
-    return userRewardRepository.findAllByUserId(SecurityUtils.getCurrentUser().getId());
-  }
+	/**
+	 * Get all rewards of the current user.
+	 *
+	 * @return the user rewards
+	 */
+	@Transactional(readOnly = true)
+	public List<UserReward> getAllCurrentUserRewards() {
+		return userRewardRepository.findAllByUserId(SecurityUtils.getCurrentUser().getId());
+	}
 }
